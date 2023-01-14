@@ -1,12 +1,15 @@
 from django.urls import path
 from rest_framework.routers import SimpleRouter
-from users.views import AuthHashViewSet, SignUpAPIView, SignInAPIView, UserRetrieveUpdateAPIView
+from users.views import (
+    SignUpAPIView, SignInAPIView, UserRetrieveUpdateAPIView, 
+    VerifyHash, AuthHashAPIView
+)
 
 router = SimpleRouter()
-router.register('auth_hash', AuthHashViewSet)
 
 urlpatterns = [
-    path('signup/', SignUpAPIView.as_view()),
     path('signin/', SignInAPIView.as_view()),
+    path('auth_hash/', AuthHashAPIView.as_view()),
+    path('verify/', VerifyHash.as_view()),
     path('user/', UserRetrieveUpdateAPIView.as_view())
 ]

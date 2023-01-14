@@ -41,7 +41,7 @@ class UserManager(BaseUserManager):
             last_name=None, photo=None, **extra_fields):
         return self._create_user(
             telegram_id, None, telegram_username, first_name,
-            False, False, False, last_name, photo, **extra_fields)
+            False, False, True, last_name, photo, **extra_fields)
 
     def create_superuser(
             self, telegram_id, password, telegram_username,
@@ -53,7 +53,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     telegram_id = models.IntegerField(db_index=True, unique=True)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     first_name = models.CharField(max_length=64, null=True, blank=True)
     last_name = models.CharField(max_length=64, null=True, blank=True)
     telegram_username = models.CharField(max_length=32, null=True, blank=True)
@@ -94,13 +94,13 @@ class User(AbstractBaseUser, PermissionsMixin):
             'exp': int(dt.strftime('%s'))
         }, settings.SECRET_KEY, algorithm='HS256')
 
-        # print(jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256']))
         return token
 
 
 
 class AuthHash(models.Model):
     hash = models.CharField(max_length=64)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     is_expired = models.BooleanField(editable=False, default=False)
 

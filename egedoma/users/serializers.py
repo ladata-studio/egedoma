@@ -1,5 +1,8 @@
 from django.contrib.auth import authenticate
-from rest_framework.serializers import Serializer, ReadOnlyField, ModelSerializer, CharField, IntegerField, ValidationError
+from rest_framework.serializers import (
+    Serializer, ReadOnlyField, ModelSerializer, CharField, IntegerField, 
+    ValidationError
+)
 from users.models import AuthHash, User
 
 class TimestampField(ReadOnlyField):
@@ -7,11 +10,12 @@ class TimestampField(ReadOnlyField):
         return int(value.timestamp())
 
 class AuthHashSerializer(ModelSerializer):
+    user = IntegerField(source='user.telegram_id')
     created_at = TimestampField()
 
     class Meta:
         model = AuthHash
-        fields = ['hash', 'created_at', 'is_expired']
+        fields = ['hash', 'user', 'created_at', 'is_expired']
 
 
 class UserSerializer(ModelSerializer):

@@ -39,7 +39,7 @@ class UserAdmin(BaseUserAdmin):
 
 class AuthHashAdmin(admin.ModelAdmin):
     fieldsets = (
-        (None, {'fields': ('hash', 'created_at', 'is_expired')}),
+        (None, {'fields': ('hash', 'user', 'created_at', 'is_expired')}),
     )
 
     readonly_fields = ('created_at', 'is_expired')
