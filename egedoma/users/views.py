@@ -40,4 +40,8 @@ class VerifyHash(APIView):
             queryset.save()
             return Response({'hash': f'Hash {hash} is expired.'}, status=500)
 
+        # Если пользователь не найден в БД, то создать профиль и залогинить
+        # Если пользователь найден, то просто залогинить
+        # Но это сделать отдельными view
+
         return Response(data, status=200)

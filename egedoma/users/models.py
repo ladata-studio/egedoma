@@ -37,10 +37,10 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(
-            self, telegram_id, password, telegram_username, first_name,
+            self, telegram_id, telegram_username, first_name,
             last_name=None, photo=None, **extra_fields):
         return self._create_user(
-            telegram_id, password, telegram_username, first_name,
+            telegram_id, None, telegram_username, first_name,
             False, False, False, last_name, photo, **extra_fields)
 
     def create_superuser(
