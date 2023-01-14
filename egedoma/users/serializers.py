@@ -1,7 +1,6 @@
 from rest_framework.serializers import ReadOnlyField, ModelSerializer
-from django.utils import timezone
 
-from users.models import AuthHash, Student
+from users.models import AuthHash, User
 
 class TimestampField(ReadOnlyField):
     def to_representation(self, value):
@@ -15,11 +14,11 @@ class AuthHashSerializer(ModelSerializer):
         fields = ['hash', 'created', 'is_expired']
 
 
-class StudentSerializer(ModelSerializer):
+class UserSerializer(ModelSerializer):
     created = TimestampField()
 
     class Meta:
-        model = Student
+        model = User
         fields = [
             'telegram_id', 'telegram_username', 'last_name',
             'first_name', 'photo', 'is_active', 'created'

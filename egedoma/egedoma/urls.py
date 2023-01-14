@@ -17,9 +17,11 @@ from django.contrib import admin
 from django.urls import path
 
 from users.urls import router
+from users.views import VerifyHash
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('verify-hash/', VerifyHash.as_view()),
 ]
 
 urlpatterns += router.urls

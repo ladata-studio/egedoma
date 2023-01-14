@@ -2,6 +2,7 @@ FROM python:3.11.1-alpine3.17
 
 ENV BACKEND_HOST=127.0.0.1
 ENV TELEGRAM_BOT_HOST=3033-2a01-e0a-a0d-71b0-dd20-7fd1-51a6-5101.eu.ngrok.io
+ENV HASH_LIFETIME=300
 
 COPY requirements.txt /temp/requirements.txt
 COPY egedoma /egedoma
