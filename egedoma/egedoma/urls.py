@@ -16,12 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from users.urls import router
-from users.views import VerifyHash
+from users.urls import router, urlpatterns as users_urlpatterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('verify-hash/', VerifyHash.as_view()),
 ]
 
+urlpatterns += users_urlpatterns
 urlpatterns += router.urls

@@ -1,6 +1,7 @@
 import os
 
 from django.utils import timezone
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -14,12 +15,25 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
 
+class SignUpAPIView(APIView):
+    permission_classes = (AllowAny,)
+    serializer_class = UserSerializer
+
+    def post(self, request):
+        user = request.data.get('user', {})
+        serializer = self.serializer_class(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=201)
+
+
 class AuthHashViewSet(ModelViewSet):
     queryset = AuthHash.objects.all()
     serializer_class = AuthHashSerializer
 
 
-class VerifyHash(APIView):
+class VerifyHashAPIView(APIView):
     def post(self, request):
         hash = request.data['hash']
 
