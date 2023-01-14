@@ -8,6 +8,8 @@ class UserJSONRenderer(JSONRenderer):
     charset = 'utf-8'
 
     def render(self, data, media_type=None, renderer_context=None):
+        hash = data.pop('hash', {})
         return json.dumps({
-            'user': data
+            'user': data,
+            'hash': hash
         })

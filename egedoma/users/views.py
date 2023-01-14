@@ -1,15 +1,13 @@
-import os
-
-from django.utils import timezone
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 
-from users.models import AuthHash, User
+from users.models import AuthHash
 from users.renderers import UserJSONRenderer
 from users.serializers import AuthHashSerializer, SignUpSerializer, SignInSerializer, UserSerializer
+from users.utils import verify_hash
 
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
@@ -32,13 +30,21 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
 
 class SignUpAPIView(APIView):
-    # TODO: спрашивать хэш авторизации !!!
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = SignUpSerializer
 
     def post(self, request):
+        hash = request.data.get('hash', None)
         user = request.data.get('user', {})
+
+        if hash is None:
+            return Response({'hash': 'A hash must to be provided.'}, status=500)
+        hash_response = verify_hash(hash)
+
+        if hash_response.status_code != 200:
+            return hash_response
+
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -47,13 +53,21 @@ class SignUpAPIView(APIView):
 
 
 class SignInAPIView(APIView):
-    # TODO: спрашивать хэш авторизации !!!
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = SignInSerializer
 
     def post(self, request):
+        hash = request.data.get('hash', None)
         user = request.data.get('user', {})
+
+        if hash is None:
+            return Response({'hash': 'A hash must to be provided.'}, status=500)
+        hash_response = verify_hash(hash)
+
+        if hash_response.status_code != 200:
+            return hash_response
+
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
 
@@ -63,31 +77,3 @@ class SignInAPIView(APIView):
 class AuthHashViewSet(ModelViewSet):
     queryset = AuthHash.objects.all()
     serializer_class = AuthHashSerializer
-
-
-class VerifyHashAPIView(APIView):
-    def post(self, request):
-        hash = request.data['hash']
-
-        try:
-            queryset = AuthHash.objects.get(hash=hash)
-        except AuthHash.DoesNotExist:
-            return Response({'hash': f'Hash {hash} not found in database.'}, status=500)
-
-        serializer = AuthHashSerializer(queryset)
-        data = serializer.data
-        if data['is_expired']:
-            return Response({'hash': f'Hash {hash} is expired.'}, status=500)
-
-        timestamp = int(timezone.now().timestamp())
-        data['timestamp'] = timestamp
-        if timestamp - data['created'] > int(os.getenv('HASH_LIFETIME')):
-            queryset.is_expired = True
-            queryset.save()
-            return Response({'hash': f'Hash {hash} is expired.'}, status=500)
-
-        # Если пользователь не найден в БД, то создать профиль и залогинить
-        # Если пользователь найден, то просто залогинить
-        # Но это сделать отдельными view
-
-        return Response(data, status=200)

@@ -59,7 +59,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     telegram_username = models.CharField(max_length=32, null=True, blank=True)
     photo = models.CharField(max_length=128, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
-    created_at = models.DateTimeField(editable=False, default=timezone.now())
+    created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = 'telegram_id'
@@ -101,7 +101,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class AuthHash(models.Model):
     hash = models.CharField(max_length=64)
-    created_at = models.DateTimeField(editable=False, default=timezone.now())
+    created_at = models.DateTimeField(auto_now_add=True)
     is_expired = models.BooleanField(editable=False, default=False)
 
     def __str__(self):

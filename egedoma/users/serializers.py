@@ -7,7 +7,7 @@ class TimestampField(ReadOnlyField):
         return int(value.timestamp())
 
 class AuthHashSerializer(ModelSerializer):
-    created = TimestampField()
+    created_at = TimestampField()
 
     class Meta:
         model = AuthHash
@@ -15,6 +15,9 @@ class AuthHashSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
+    created_at = TimestampField()
+    updated_at = TimestampField()
+
     class Meta:
         model = User
         fields = [
