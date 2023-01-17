@@ -59,17 +59,17 @@ class SignInAPIView(APIView):
         return Response(data, status=200)
 
 
-class AuthHashAPIView(APIView):
+class CreateHashAPIView(APIView):
     def post(self, request):
         try:
             user = request.data.get('user')
             try:
-                user = User.objects.get(telegram_id=user['telegram_id'])
+                user = User.objects.get(pk=user['telegram_id'])
             except Exception as e:
                 response = SignUpAPIView().post(request)
                 if response.status_code != 201:
                     return response
-                user = User.objects.get(telegram_id=user['telegram_id'])
+                user = User.objects.get(pk=user['telegram_id'])
             
             hash = request.data.get('hash')
             if hash is None:
@@ -84,31 +84,21 @@ class AuthHashAPIView(APIView):
             return Response(status=201, data=data)
         except Exception as e:
             return Response(status=500, data={'error': str(e)})
-    
-    def get(self, request):
-        queryset = AuthHash.objects.all()
-        serializer = AuthHashSerializer(queryset, many=True)
-        data = serializer.data
-        return Response(status=200, data=data)
-
 
 
 class VerifyHash(APIView):
     def post(self, request):
         hash = request.data.get('hash', None)
-        user = request.data.get('user', {})
         if hash is None:
             return Response({'hash': 'A hash must to be provided.'}, status=500)
         
-        hash_response = verify_hash(hash, user['telegram_id'])
+        hash_response = verify_hash(hash)
         if hash_response.status_code != 200:
             return hash_response
         
-        # TODO: GENERATE JWT TOKEN
-        # 
+        x = {'user': {'telegram_id': hash_response.data['hash']['user']}}
+        request.data.update(x)
+        response = SignInAPIView().post(request)
+        response.data.pop('telegram_id')
 
-        token = ''
-        
-        data = {'user': user, 'token': token}
-        
-        return Response(data, status=200)
+        return response

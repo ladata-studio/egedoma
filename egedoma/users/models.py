@@ -52,7 +52,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    telegram_id = models.IntegerField(db_index=True, unique=True)
+    telegram_id = models.IntegerField(primary_key=True, db_index=True, unique=True)
     is_active = models.BooleanField(default=True)
     first_name = models.CharField(max_length=64, null=True, blank=True)
     last_name = models.CharField(max_length=64, null=True, blank=True)

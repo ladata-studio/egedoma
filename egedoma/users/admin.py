@@ -33,7 +33,7 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('telegram_id', 'telegram_username', 'is_active', 'is_staff', 'updated_at')
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
     search_fields = ('telegram_id', 'telegram_username')
-    ordering = ('telegram_id', 'telegram_username')
+    ordering = ('-created_at', )
     filter_horizontal = ('groups', 'user_permissions')
 
 
@@ -43,8 +43,8 @@ class AuthHashAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('created_at', 'is_expired')
-    list_display = ('hash', 'created_at', 'is_expired')
-    ordering = ('created_at',)
+    list_display = ('hash', 'user', 'created_at', 'is_expired')
+    ordering = ('-created_at',)
 
 
 admin.site.register(AuthHash, AuthHashAdmin)

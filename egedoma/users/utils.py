@@ -3,18 +3,16 @@ import os
 from django.utils import timezone
 from rest_framework.response import Response
 
-from users.models import AuthHash, User
+from users.models import AuthHash
 from users.serializers import AuthHashSerializer
 
 
-def verify_hash(hash, telegram_id):
+def verify_hash(hash):
     try:
-        user = User.objects.get(telegram_id=telegram_id)
-        queryset = AuthHash.objects.get(hash=hash, user=user)
+        queryset = AuthHash.objects.get(hash=hash)
     except:
         return Response({
-            'hash': {'hash': f'Hash {hash} for user {telegram_id} not found \
-                in database.'
+            'hash': {'hash': f'Hash {hash} is not found in database.'
         }}, status=500)
 
     serializer = AuthHashSerializer(queryset)
