@@ -1,9 +1,9 @@
+from rest_framework_simplejwt.tokens import RefreshToken
 import os
 
 from django.utils import timezone
-from rest_framework.response import Response
 
-from users.models import AuthHash
+from users.models import AuthHash, User
 from users.serializers import AuthHashSerializer
 
 
@@ -11,16 +11,13 @@ def verify_hash(hash):
     try:
         queryset = AuthHash.objects.get(hash=hash)
     except:
-        return Response({
-            'hash': {'hash': f'Hash {hash} is not found in database.'
-        }}, status=500)
+        return None
 
     serializer = AuthHashSerializer(queryset)
     data = serializer.data
 
     if data.get('is_expired'):
-        data = {'hash': data, 'error': 'This hash has expired'}
-        return Response(data, status=500)
+        return None
 
     timestamp = int(timezone.now().timestamp())
     data['timestamp'] = timestamp
@@ -31,8 +28,16 @@ def verify_hash(hash):
 
         serializer = AuthHashSerializer(queryset)
         data = serializer.data
-        data = {'hash': data, 'error': 'This hash has expired'}
-        return Response(data, status=500)
+        return None
 
-    data = {'hash': data}
-    return Response(data, status=200)
+    return queryset.user
+
+
+def create_tokens(user: User):
+    refresh = RefreshToken.for_user(user)
+    tokens = {
+        "access": str(refresh.access_token),
+        "refresh": str(refresh)
+    }
+
+    return tokens

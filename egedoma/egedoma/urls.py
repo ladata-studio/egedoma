@@ -17,10 +17,18 @@ from django.contrib import admin
 from django.urls import path
 
 from users.urls import router, urlpatterns as users_urlpatterns
+from api.urls import urlpatterns as api_urlpatterns
+from rest_framework_simplejwt.views import (TokenRefreshView)
+from rest_framework_simplejwt.views import TokenVerifyView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # TODO: create custom views that accepst tokens only via Auth Header
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 ]
 
 urlpatterns += users_urlpatterns
+urlpatterns += api_urlpatterns
 urlpatterns += router.urls

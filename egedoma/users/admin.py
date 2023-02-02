@@ -1,8 +1,8 @@
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib import admin
 from users.models import AuthHash, User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from users.forms import UserForm
-
 
 class UserAdmin(BaseUserAdmin):
     add_form = UserForm

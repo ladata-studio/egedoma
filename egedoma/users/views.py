@@ -4,10 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import AuthHash, User
 from users.renderers import UserJSONRenderer
-from users.serializers import (
-        AuthHashSerializer, SignInSerializer, SignUpSerializer, UserSerializer
-)
-from users.utils import verify_hash
+from users.serializers import UserSerializer
+from users.utils import verify_hash, create_tokens
 
 
 class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
@@ -29,47 +27,20 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         return Response(serializer.data, status=200)
 
 
-class SignUpAPIView(APIView):
-    permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
-    serializer_class = SignUpSerializer
-
-    def post(self, request):
-        user = request.data.get('user', {})
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        data = serializer.data
-
-        return Response(data, status=201)
-
-
-class SignInAPIView(APIView):
-    permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
-    serializer_class = SignInSerializer
-
-    def post(self, request):
-        user = request.data.get('user', {})
-
-        serializer = self.serializer_class(data=user)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.data
-
-        return Response(data, status=200)
-
-
 class CreateHashAPIView(APIView):
     def post(self, request):
         try:
-            user = request.data.get('user')
+            user = request.data.get('user', None)
+            if user is None:
+                return Response({'user': 'A user must to be provided.'}, status=500)
             try:
-                user = User.objects.get(pk=user['telegram_id'])
+                telegram_id = user.pop('telegram_id')
+                user, _ = User.objects.update_or_create(
+                    telegram_id=telegram_id, defaults=user)
             except Exception as e:
-                response = SignUpAPIView().post(request)
-                if response.status_code != 201:
-                    return response
-                user = User.objects.get(pk=user['telegram_id'])
+                return Response(
+                    {'user': f'Couldn\'t create or update a user. {e}'}, status=500
+                )
             
             hash = request.data.get('hash')
             if hash is None:
@@ -77,28 +48,23 @@ class CreateHashAPIView(APIView):
                     {'hash': 'A hash must to be provided.'}, status=500
                 )
         
-            queryset = AuthHash.objects.create(hash=hash, user=user)
-            serializer = AuthHashSerializer(queryset)
-            data = serializer.data
+            AuthHash.objects.create(hash=hash, user=user)
             
-            return Response(status=201, data=data)
+            return Response(status=201, data={'status': 'ok'})
         except Exception as e:
             return Response(status=500, data={'error': str(e)})
 
 
-class VerifyHash(APIView):
+class VerifyHashAPIView(APIView):
     def post(self, request):
         hash = request.data.get('hash', None)
         if hash is None:
             return Response({'hash': 'A hash must to be provided.'}, status=500)
         
-        hash_response = verify_hash(hash)
-        if hash_response.status_code != 200:
-            return hash_response
+        user = verify_hash(hash)
+        if user is None:
+            return Response({'hash': 'Provided hash is not valid.'}, status=500)
+    
+        tokens = create_tokens(user)
         
-        x = {'user': {'telegram_id': hash_response.data['hash']['user']}}
-        request.data.update(x)
-        response = SignInAPIView().post(request)
-        response.data.pop('telegram_id')
-
-        return response
+        return Response(tokens, status=200)
